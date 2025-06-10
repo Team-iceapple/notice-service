@@ -144,8 +144,7 @@ export class CrawlerNoticeRepository implements NoticeRepository {
 
         const createdAt = found.created_at;
 
-        const hasAttachment =
-            $('div.ui.bbs--view--content').find('a[href$=".pdf"]').length > 0;
+        const hasAttachment = $('div.ui.bbs--view--file a').length > 0;
 
         return {
             id,
