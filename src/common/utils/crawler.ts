@@ -20,7 +20,7 @@ function handleAxiosError(prefix: string, error: unknown) {
     }
 }
 
-export async function fetchNoticesPage(page: number = 1): Promise<string> {
+export async function fetchMobilePage(page: number = 1): Promise<string> {
     const url = `https://www.hanbat.ac.kr/bbs/BBSMSTR_000000001001/list.do?page=${page}`;
     try {
         const {data}: AxiosResponse<string> = await axios.get(url, {
@@ -40,7 +40,7 @@ export async function fetchNoticesPage(page: number = 1): Promise<string> {
     }
 }
 
-export async function fetchNoticeDetailPage(id: string): Promise<string> {
+export async function fetchMobileDetailPage(id: string): Promise<string> {
     const url = `https://www.hanbat.ac.kr/bbs/BBSMSTR_000000001001/view.do?nttId=${id}`;
     try {
         const {data}: AxiosResponse<string> = await axios.get(url, {
