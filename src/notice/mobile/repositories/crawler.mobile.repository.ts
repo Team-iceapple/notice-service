@@ -99,10 +99,13 @@ export class CrawlerMobileRepository implements MobileRepository {
         });
 
         const allowedTags = ['p', 'br', 'ul', 'ol', 'li', 'b', 'strong', 'i', 'u', 'a', 'img'];
+
         contentDom.find('*').each((_, el) => {
-            const tag = el.tagName.toLowerCase();
-            if (!allowedTags.includes(tag)) {
-                $(el).replaceWith($(el).contents());
+            if ('tagName' in el) {
+                const tag = el.tagName.toLowerCase();
+                if (!allowedTags.includes(tag)) {
+                    $(el).replaceWith($(el).contents());
+                }
             }
         });
         let contentHtml = contentDom.html() ?? '';
