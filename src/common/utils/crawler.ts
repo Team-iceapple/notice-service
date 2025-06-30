@@ -1,6 +1,6 @@
 import axios, {AxiosResponse} from 'axios';
 
-const DEFAULT_TIMEOUT = 15000; // 15초
+const DEFAULT_TIMEOUT = 15000;
 
 function handleAxiosError(prefix: string, error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -20,7 +20,7 @@ function handleAxiosError(prefix: string, error: unknown) {
     }
 }
 
-export async function fetchMobilePage(page: number = 1): Promise<string> {
+export async function fetchMobilePage(page = 1) {
     const url = `https://www.hanbat.ac.kr/bbs/BBSMSTR_000000001001/list.do?page=${page}`;
     try {
         const {data}: AxiosResponse<string> = await axios.get(url, {
@@ -40,7 +40,7 @@ export async function fetchMobilePage(page: number = 1): Promise<string> {
     }
 }
 
-export async function fetchMobileDetailPage(id: string): Promise<string> {
+export async function fetchMobileDetailPage(id: string) {
     const url = `https://www.hanbat.ac.kr/bbs/BBSMSTR_000000001001/view.do?nttId=${id}`;
     try {
         const {data}: AxiosResponse<string> = await axios.get(url, {
@@ -58,4 +58,58 @@ export async function fetchMobileDetailPage(id: string): Promise<string> {
         handleAxiosError(`[Crawler] fetchNoticeDetailPage(id=${id})`, error);
         return '';
     }
+}
+
+export async function fetchSwNoticeList(page = 1, limit = 10) {
+    const offset = (page - 1) * limit;
+
+    const payload = {
+        offset,
+        limit,
+        order: 'desc',
+        sort: 'regDate',
+        searchData: {
+            searchCate: 'all',
+            searchWord: '',
+        },
+    };
+
+    try {
+        const {data} = await axios.post('https://sw.hanbat.ac.kr/community/notice/list', payload, {
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0',
+            },
+        });
+
+        return data.rows;
+    } catch (err) {
+        console.error('[fetchSwNoticeList] Error:', err);
+        return [];
+    }
+}
+
+export async function fetchSwNoticeDetailPage(boardSn: string): Promise<string> {
+    try {
+        const {data} = await axios.post(
+            'https://sw.hanbat.ac.kr/community/noticeDetail',
+            new URLSearchParams({
+                boardType: 'NOTICE',
+                boardSn,
+                pageNum: '1',
+            }),
+            {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'User-Agent': 'Mozilla/5.0',
+                },
+            },
+        );
+
+        return data;
+    } catch (error) {
+        console.error(`[Crawler] fetchSwNoticeDetailPage(${boardSn}) 에러:`, error);
+        return '';
+    }
+
 }

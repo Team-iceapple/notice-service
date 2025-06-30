@@ -3,7 +3,7 @@ import {load} from 'cheerio';
 import {MobileRepository} from './mobile.repository';
 import {MobileListDto} from '../dto/mobile.list.dto';
 import {MobileDetailDto} from '../dto/mobile.detail.dto';
-import {fetchMobileDetailPage, fetchMobilePage} from '../utils/crawler';
+import {fetchMobileDetailPage, fetchMobilePage} from '@/common/utils/crawler';
 import {MobileSimpleDto} from '../dto/mobile.simple.dto';
 
 @Injectable()
