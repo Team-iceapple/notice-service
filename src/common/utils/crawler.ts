@@ -20,8 +20,8 @@ function handleAxiosError(prefix: string, error: unknown) {
     }
 }
 
-export async function fetchMobilePage(page = 1) {
-    const url = `https://www.hanbat.ac.kr/bbs/BBSMSTR_000000001001/list.do?page=${page}`;
+export async function fetchMobilePage(page: number) {
+    const url = `https://www.hanbat.ac.kr/bbs/BBSMSTR_000000001001/list.do?pageIndex=${page}`;
     try {
         const {data}: AxiosResponse<string> = await axios.get(url, {
             responseType: 'text',

@@ -3,7 +3,7 @@ import {MobileListDto} from '../dto/mobile.list.dto';
 import {MobileSimpleDto} from '../dto/mobile.simple.dto';
 
 export abstract class MobileRepository {
-    abstract findAllSimple(): Promise<MobileListDto[]>;
+    abstract findAllSimple(page: number): Promise<MobileListDto[]>;
 
     abstract findPinnedSimple(): Promise<MobileSimpleDto[]>;
 

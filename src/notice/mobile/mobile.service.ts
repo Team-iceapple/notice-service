@@ -10,8 +10,41 @@ export class MobileService {
     constructor(private readonly repo: MobileRepository) {
     }
 
-    async getAllMobile(): Promise<MobileListDto[]> {
-        return this.repo.findAllSimple();
+    async getAllMobile(limit = 30): Promise<MobileListDto[]> {
+        const pinnedNotices = new Map<string, MobileListDto>();
+        const regularNotices = new Map<string, MobileListDto>();
+        let currentPage = 1;
+
+        while (regularNotices.size < limit) {
+            const noticesFromPage = await this.repo.findAllSimple(currentPage);
+
+            if (noticesFromPage.length === 0) {
+                break;
+            }
+
+            for (const notice of noticesFromPage) {
+                if (notice.is_pin) {
+                    if (!pinnedNotices.has(notice.id)) {
+                        pinnedNotices.set(notice.id, notice);
+                    }
+                } else {
+                    if (regularNotices.size < limit && !regularNotices.has(notice.id)) {
+                        regularNotices.set(notice.id, notice);
+                    }
+                }
+            }
+            currentPage++;
+        }
+
+        const pinnedArray = Array.from(pinnedNotices.values()).sort((a, b) => {
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+
+        const regularArray = Array.from(regularNotices.values()).sort((a, b) => {
+            return (b.num ?? 0) - (a.num ?? 0);
+        });
+
+        return [...pinnedArray, ...regularArray];
     }
 
     async getPinnedMobile(): Promise<MobileSimpleDto[]> {

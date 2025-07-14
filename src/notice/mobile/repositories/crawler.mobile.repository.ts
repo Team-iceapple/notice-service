@@ -8,7 +8,7 @@ import {MobileSimpleDto} from '../dto/mobile.simple.dto';
 
 @Injectable()
 export class CrawlerMobileRepository implements MobileRepository {
-    async findAllSimple(): Promise<MobileListDto[]> {
+    async findAllSimple(page: number): Promise<MobileListDto[]> {
         type PartialRow = {
             id: string;
             num: number | null;
@@ -19,17 +19,16 @@ export class CrawlerMobileRepository implements MobileRepository {
         };
 
         const rows: PartialRow[] = [];
-        const html = await fetchMobilePage(1); // 1페이지만 가져옵니다.
-
+        const html = await fetchMobilePage(page);
         if (!html) {
             return [];
         }
 
         const $ = load(html);
+        const $trs = $('table.board_list tbody tr');
 
-        $('table.board_list tbody tr').each((_, tr) => {
+        $trs.each((_, tr) => {
             const $tr = $(tr);
-            const isPin = $tr.hasClass('mobile');
 
             const $a = $tr.find('.subject a');
             const onClick = $a.attr('onclick') || '';
@@ -41,14 +40,22 @@ export class CrawlerMobileRepository implements MobileRepository {
             if (!titleText) return;
 
             const numText = $tr.find('td').first().text().trim();
-            const num = isPin ? null : (Number.parseInt(numText, 10) || null);
+            const num = Number.parseInt(numText, 10);
+            const isPin = Number.isNaN(num);
 
             const dateText = $tr.find('.regDate').text().trim();
             const createdAt = dateText ? `${dateText}T00:00:00+09:00` : '';
 
             const hasAttachment = $tr.find('.atchFileId a').length > 0;
 
-            rows.push({ id, num, title: titleText, isPin, createdAt, hasAttachment });
+            rows.push({
+                id,
+                num: isPin ? null : num,
+                title: titleText,
+                isPin,
+                createdAt,
+                hasAttachment
+            });
         });
 
         return rows.map((row) => ({
@@ -63,8 +70,9 @@ export class CrawlerMobileRepository implements MobileRepository {
         }));
     }
 
+
     async findPinnedSimple(): Promise<MobileSimpleDto[]> {
-        const all = await this.findAllSimple();
+        const all = await this.findAllSimple(1);
         return all
             .filter((item) => item.is_pin)
             .map((item) => ({
@@ -74,10 +82,6 @@ export class CrawlerMobileRepository implements MobileRepository {
     }
 
     async findOneDetail(id: string): Promise<MobileDetailDto | null> {
-        const all = await this.findAllSimple();
-        const found = all.find((item) => item.id === id);
-        if (!found) return null;
-
         const detailHtml = await fetchMobileDetailPage(id);
         if (!detailHtml) return null;
 
@@ -92,38 +96,30 @@ export class CrawlerMobileRepository implements MobileRepository {
         });
         title = title.replace(/\s+/g, ' ').trim();
 
-        const contentDom = $('div.ui.bbs--view--content').clone();
+        const createdAt = `${$('dl.ui.bbs--view--info dd').first().text().trim()}T00:00:00+09:00`;
+        const is_pin = false;
 
-        contentDom.find('[style], [class], [id]').each((_, el) => {
-            $(el).removeAttr('style').removeAttr('class').removeAttr('id');
-        });
-
+        const contentDom = $('div.ui.bbs--view--content');
+        contentDom.find('[style], [class], [id]').removeAttr('style').removeAttr('class').removeAttr('id');
         const allowedTags = ['p', 'br', 'ul', 'ol', 'li', 'b', 'strong', 'i', 'u', 'a', 'img'];
-
         contentDom.find('*').each((_, el) => {
-            if ('tagName' in el) {
-                const tag = el.tagName.toLowerCase();
-                if (!allowedTags.includes(tag)) {
-                    $(el).replaceWith($(el).contents());
-                }
+            if (el.type === 'tag' && !allowedTags.includes(el.tagName.toLowerCase())) {
+                $(el).replaceWith($(el).contents());
             }
         });
         let contentHtml = contentDom.html() ?? '';
         contentHtml = contentHtml
             .replace(/&nbsp;/g, ' ')
-            .replace(/ +/g, ' ')
-            .replace(/\s*<br\s*\/?>\s*/g, '<br>')
-            .replace(/^\s+|\s+$/g, '');
-
-        contentHtml = contentHtml.replace(/\n+/g, '');
+            .replace(/\s\s+/g, ' ')
+            .trim();
 
         const hasAttachment = $('div.ui.bbs--view--file a').length > 0;
 
         return {
             id,
             title,
-            created_at: found.created_at,
-            is_pin: found.is_pin,
+            created_at: createdAt,
+            is_pin: is_pin,
             content: contentHtml,
             has_attachment: hasAttachment,
             url: `https://www.hanbat.ac.kr/bbs/BBSMSTR_000000001001/view.do?nttId=${id}`,
