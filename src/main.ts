@@ -7,12 +7,13 @@ async function bootstrap() {
         origin: [
             "http://localhost:3000",
             "http://localhost:5173",
+            "https://task-api.wisoft.io",
         ],
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         credentials: true,
         allowedHeaders: ["Content-Type", "Authorization"],
     });
-    await app.listen(process.env.PORT ?? 3001);
+    await app.listen(process.env.PORT ?? 8000);
 }
 
 bootstrap();

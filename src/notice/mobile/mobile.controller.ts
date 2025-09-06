@@ -4,7 +4,7 @@ import {MobileListDto} from './dto/mobile.list.dto';
 import {MobileDetailDto} from './dto/mobile.detail.dto';
 import {MobileSimpleDto} from './dto/mobile.simple.dto';
 
-@Controller('api/mobile')
+@Controller('mobile')
 export class MobileController {
     constructor(private readonly service: MobileService) {
     }

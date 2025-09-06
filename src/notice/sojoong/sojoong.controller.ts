@@ -4,7 +4,7 @@ import {SojoongListDto} from './dto/sojoong.list.dto';
 import {SojoongDetailDto} from './dto/sojoong.detail.dto';
 import {SojoongSimpleDto} from './dto/sojoong.simple.dto';
 
-@Controller('api/sojoong')
+@Controller('sojoong')
 export class SojoongController {
     constructor(private readonly service: SojoongService) {
     }
