@@ -5,7 +5,7 @@ export function cleanHtmlPreserveTags(html: string): string {
     
     $('[style], [class], [id]').removeAttr('style').removeAttr('class').removeAttr('id');
     
-    const allowedTags = ['p', 'br', 'ul', 'ol', 'li', 'b', 'strong', 'i', 'u', 'a', 'table', 'thead', 'tbody', 'tr', 'th', 'td'];
+    const allowedTags = ['p', 'br', 'ul', 'ol', 'li', 'b', 'strong', 'i', 'u', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td'];
     
     $('*').each((_, el) => {
         if (el.type === 'tag' && !allowedTags.includes(el.tagName.toLowerCase())) {
