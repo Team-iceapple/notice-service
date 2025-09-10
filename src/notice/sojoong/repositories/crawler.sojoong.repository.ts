@@ -42,7 +42,7 @@ export class CrawlerSojoongRepository implements SojoongRepository {
 
         return {
             id,
-            title: $('.board-view h2').text().trim(),
+            title: $('.flex.ali-cen').text().trim(),
             created_at: found.created_at,
             is_pin: found.is_pin,
             content: cleanedContent,
