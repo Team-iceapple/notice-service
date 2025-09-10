@@ -101,7 +101,7 @@ export class CrawlerMobileRepository implements MobileRepository {
 
         const contentDom = $('div.ui.bbs--view--content');
         contentDom.find('[style], [class], [id]').removeAttr('style').removeAttr('class').removeAttr('id');
-        const allowedTags = ['p', 'br', 'ul', 'ol', 'li', 'b', 'strong', 'i', 'u', 'a', 'img'];
+        const allowedTags = ['p', 'br', 'ul', 'ol', 'li', 'b', 'strong', 'i', 'u', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td'];
         contentDom.find('*').each((_, el) => {
             if (el.type === 'tag' && !allowedTags.includes(el.tagName.toLowerCase())) {
                 $(el).replaceWith($(el).contents());
