@@ -14,7 +14,7 @@ export class CrawlerSojoongRepository implements SojoongRepository {
     async findAllSimple(): Promise<SojoongListDto[]> {
         const rows = await fetchSwNoticeList(1, 30);
 
-        return rows.map((item: SwNoticeItem) => SojoongListDto.from(item, 'api/sojoong'));
+        return rows.map((item: SwNoticeItem) => SojoongListDto.from(item, 'api/notice/sojoong'));
     }
 
     async findPinnedSimple(): Promise<SojoongSimpleDto[]> {
