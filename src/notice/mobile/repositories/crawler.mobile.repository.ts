@@ -66,7 +66,7 @@ export class CrawlerMobileRepository implements MobileRepository {
             updated_at: null,
             has_attachment: row.hasAttachment,
             is_pin: row.isPin,
-            url: `/api/mobile/${row.id}`,
+            url: `/api/notice/mobile/${row.id}`,
         }));
     }
 
