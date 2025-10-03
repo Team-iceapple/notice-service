@@ -1,4 +1,6 @@
-import {Injectable, NotFoundException} from '@nestjs/common';
+import {Injectable, NotFoundException, Inject} from '@nestjs/common';
+import {CACHE_MANAGER} from '@nestjs/cache-manager';
+import {Cache} from 'cache-manager';
 
 import {MobileRepository} from './repositories/mobile.repository';
 import {MobileListDto} from './dto/mobile.list.dto';
@@ -7,15 +9,27 @@ import {MobileSimpleDto} from './dto/mobile.simple.dto';
 
 @Injectable()
 export class MobileService {
-    constructor(private readonly repo: MobileRepository) {
+    constructor(
+        private readonly repo: MobileRepository,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    ) {
     }
 
     async getAllMobile(limit = 30): Promise<MobileListDto[]> {
+        const cacheKey = `mobile_all_${limit}`;
+
+        // 캐시 확인
+        const cached = await this.cacheManager.get<MobileListDto[]>(cacheKey);
+        if (cached) {
+            return cached;
+        }
+
+        // 캐시 없으면 크롤링
         const pinnedNotices = new Map<string, MobileListDto>();
         const regularNotices = new Map<string, MobileListDto>();
         let currentPage = 1;
 
-        while (regularNotices.size < limit) {
+        while (true) {
             const noticesFromPage = await this.repo.findAllSimple(currentPage);
 
             if (noticesFromPage.length === 0) {
@@ -28,11 +42,18 @@ export class MobileService {
                         pinnedNotices.set(notice.id, notice);
                     }
                 } else {
-                    if (regularNotices.size < limit && !regularNotices.has(notice.id)) {
+                    const remainingSlots = limit - pinnedNotices.size;
+                    if (regularNotices.size < remainingSlots && !regularNotices.has(notice.id)) {
                         regularNotices.set(notice.id, notice);
                     }
                 }
             }
+
+            const remainingSlots = limit - pinnedNotices.size;
+            if (regularNotices.size >= remainingSlots) {
+                break;
+            }
+
             currentPage++;
         }
 
@@ -44,7 +65,12 @@ export class MobileService {
             return (b.num ?? 0) - (a.num ?? 0);
         });
 
-        return [...pinnedArray, ...regularArray];
+        const result = [...pinnedArray, ...regularArray];
+
+        // 캐시 저장 (5분)
+        await this.cacheManager.set(cacheKey, result, 300000);
+
+        return result;
     }
 
     async getPinnedMobile(): Promise<MobileSimpleDto[]> {
