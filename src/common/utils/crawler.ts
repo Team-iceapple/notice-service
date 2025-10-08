@@ -1,4 +1,4 @@
-import axios, {AxiosResponse} from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 const DEFAULT_TIMEOUT = 15000;
 
@@ -23,7 +23,7 @@ function handleAxiosError(prefix: string, error: unknown) {
 export async function fetchMobilePage(page: number) {
     const url = `https://www.hanbat.ac.kr/bbs/BBSMSTR_000000001001/list.do?pageIndex=${page}`;
     try {
-        const {data}: AxiosResponse<string> = await axios.get(url, {
+        const { data }: AxiosResponse<string> = await axios.get(url, {
             responseType: 'text',
             headers: {
                 'User-Agent':
@@ -43,7 +43,7 @@ export async function fetchMobilePage(page: number) {
 export async function fetchMobileDetailPage(id: string) {
     const url = `https://www.hanbat.ac.kr/bbs/BBSMSTR_000000001001/view.do?nttId=${id}`;
     try {
-        const {data}: AxiosResponse<string> = await axios.get(url, {
+        const { data }: AxiosResponse<string> = await axios.get(url, {
             responseType: 'text',
             headers: {
                 'User-Agent':
@@ -75,12 +75,16 @@ export async function fetchSwNoticeList(page = 1, limit = 10) {
     };
 
     try {
-        const {data} = await axios.post('https://sw.hanbat.ac.kr/community/notice/list', payload, {
-            headers: {
-                'Content-Type': 'application/json',
-                'User-Agent': 'Mozilla/5.0',
+        const { data } = await axios.post(
+            'https://sw.hanbat.ac.kr/community/notice/list',
+            payload,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'Mozilla/5.0',
+                },
             },
-        });
+        );
 
         return data.rows;
     } catch (err) {
@@ -89,9 +93,11 @@ export async function fetchSwNoticeList(page = 1, limit = 10) {
     }
 }
 
-export async function fetchSwNoticeDetailPage(boardSn: string): Promise<string> {
+export async function fetchSwNoticeDetailPage(
+    boardSn: string,
+): Promise<string> {
     try {
-        const {data} = await axios.post(
+        const { data } = await axios.post(
             'https://sw.hanbat.ac.kr/community/noticeDetail',
             new URLSearchParams({
                 boardType: 'NOTICE',
@@ -108,8 +114,10 @@ export async function fetchSwNoticeDetailPage(boardSn: string): Promise<string> 
 
         return data;
     } catch (error) {
-        console.error(`[Crawler] fetchSwNoticeDetailPage(${boardSn}) 에러:`, error);
+        console.error(
+            `[Crawler] fetchSwNoticeDetailPage(${boardSn}) 에러:`,
+            error,
+        );
         return '';
     }
-
 }

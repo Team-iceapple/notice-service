@@ -1,7 +1,7 @@
-import {Module} from '@nestjs/common';
-import {CacheModule} from '@nestjs/cache-manager';
-import {MobileModule} from './notice/mobile/mobile.module';
-import {SojoongModule} from './notice/sojoong/sojoong.module';
+import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
+import { MobileModule } from './notice/mobile/mobile.module';
+import { SojoongModule } from './notice/sojoong/sojoong.module';
 
 @Module({
     imports: [
@@ -13,5 +13,4 @@ import {SojoongModule} from './notice/sojoong/sojoong.module';
         SojoongModule,
     ],
 })
-export class AppModule {
-}
+export class AppModule {}

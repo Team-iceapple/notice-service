@@ -1,4 +1,3 @@
-export interface SojoongSimpleDto {
-    id: string;
-    title: string;
-}
+import { BaseSimpleDto } from '@src/notice/common/base/base-notice.dto';
+
+export class SojoongSimpleDto extends BaseSimpleDto {}

@@ -1,7 +1,9 @@
-import {Test, TestingModule} from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 
-import {SojoongController} from './sojoong.controller';
-import {SojoongService} from './sojoong.service';
+import {SojoongController} from "@src/notice/sojoong/sojoong.controller";
+import {SojoongService} from "@src/notice/sojoong/sojoong.service";
+
+
 
 describe('SojoongController', () => {
     let controller: SojoongController;

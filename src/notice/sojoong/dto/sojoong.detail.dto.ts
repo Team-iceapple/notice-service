@@ -1,12 +1,6 @@
-export class SojoongDetailDto {
-    id: string;
-    title: string;
-    created_at: string;
-    is_pin: boolean;
-    content: string;
-    has_attachment: boolean;
-    url: string;
-}
+import { BaseDetailDto } from '@src/notice/common/base/base-notice.dto';
+
+export class SojoongDetailDto extends BaseDetailDto {}
 
 export interface SwNoticeItem {
     boardSn: number;

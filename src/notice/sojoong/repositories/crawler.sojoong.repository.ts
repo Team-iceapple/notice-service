@@ -1,24 +1,31 @@
-import {Injectable} from '@nestjs/common';
-import {SojoongRepository} from './sojoong.repository';
-import {SojoongListDto} from '../dto/sojoong.list.dto';
-import {SojoongDetailDto, SwNoticeItem} from '../dto/sojoong.detail.dto';
-import {SojoongSimpleDto} from '../dto/sojoong.simple.dto';
-import {fetchSwNoticeDetailPage, fetchSwNoticeList} from '@/common/utils/crawler';
-import {load} from "cheerio";
-import {cleanHtmlPreserveTags} from "@/common/utils/htmlCleaner";
+import { load } from 'cheerio';
+
+import { Injectable } from '@nestjs/common';
+
+import {fetchSwNoticeDetailPage, fetchSwNoticeList} from '@src/common/utils/crawler';
+import { cleanHtmlPreserveTags } from '@src/common/utils/htmlCleaner';
+import {SojoongRepository} from "@src/notice/sojoong/repositories/sojoong.repository";
+import {SojoongListDto} from "@src/notice/sojoong/dto/sojoong.list.dto";
+import {SojoongDetailDto, SwNoticeItem} from "@src/notice/sojoong/dto/sojoong.detail.dto";
+import {SojoongSimpleDto} from "@src/notice/sojoong/dto/sojoong.simple.dto";
 
 @Injectable()
 export class CrawlerSojoongRepository implements SojoongRepository {
     private readonly baseUrl = 'https://sw.hanbat.ac.kr';
 
-    async findAllSimple(): Promise<SojoongListDto[]> {
-        const rows = await fetchSwNoticeList(1, 30);
+    async findAllSimple(
+        page: number,
+        limit: number,
+    ): Promise<SojoongListDto[]> {
+        const rows = await fetchSwNoticeList(page, limit);
 
-        return rows.map((item: SwNoticeItem) => SojoongListDto.from(item, 'api/notice/sojoong'));
+        return rows.map((item: SwNoticeItem) =>
+            SojoongListDto.from(item, 'api/notice/sojoong'),
+        );
     }
 
     async findPinnedSimple(): Promise<SojoongSimpleDto[]> {
-        const all = await this.findAllSimple();
+        const all = await this.findAllSimple(1, 30);
         return all
             .filter((item) => item.is_pin)
             .map((item) => ({
@@ -28,7 +35,7 @@ export class CrawlerSojoongRepository implements SojoongRepository {
     }
 
     async findOneDetail(id: string): Promise<SojoongDetailDto | null> {
-        const list = await this.findAllSimple();
+        const list = await this.findAllSimple(1, 30);
         const found = list.find((item) => item.id === id);
         if (!found) return null;
 
@@ -38,7 +45,9 @@ export class CrawlerSojoongRepository implements SojoongRepository {
         const $ = load(html);
 
         const contentHtml = $('.detail-content-body').html();
-        const cleanedContent = contentHtml ? cleanHtmlPreserveTags(contentHtml) : '';
+        const cleanedContent = contentHtml
+            ? cleanHtmlPreserveTags(contentHtml)
+            : '';
 
         return {
             id,

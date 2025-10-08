@@ -1,9 +1,12 @@
-import {SojoongDetailDto} from '../dto/sojoong.detail.dto';
-import {SojoongListDto} from '../dto/sojoong.list.dto';
-import {SojoongSimpleDto} from '../dto/sojoong.simple.dto';
+import {SojoongListDto} from "@src/notice/sojoong/dto/sojoong.list.dto";
+import {SojoongSimpleDto} from "@src/notice/sojoong/dto/sojoong.simple.dto";
+import {SojoongDetailDto} from "@src/notice/sojoong/dto/sojoong.detail.dto";
 
 export abstract class SojoongRepository {
-    abstract findAllSimple(): Promise<SojoongListDto[]>;
+    abstract findAllSimple(
+        page: number,
+        limit: number,
+    ): Promise<SojoongListDto[]>;
 
     abstract findPinnedSimple(): Promise<SojoongSimpleDto[]>;
 

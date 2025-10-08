@@ -1,88 +1,50 @@
-import {Injectable, NotFoundException, Inject} from '@nestjs/common';
-import {CACHE_MANAGER} from '@nestjs/cache-manager';
-import {Cache} from 'cache-manager';
+import { Injectable, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
-import {MobileRepository} from './repositories/mobile.repository';
-import {MobileListDto} from './dto/mobile.list.dto';
-import {MobileDetailDto} from './dto/mobile.detail.dto';
-import {MobileSimpleDto} from './dto/mobile.simple.dto';
+import { MobileRepository } from '@src/notice/mobile/repositories/mobile.repository';
+import { BaseNoticeService } from '@src/notice/common/base/base-notice.service';
+import { MobileListDto } from '@src/notice/mobile/dto/mobile.list.dto';
+import { MobileDetailDto } from '@src/notice/mobile/dto/mobile.detail.dto';
+import { MobileSimpleDto } from '@src/notice/mobile/dto/mobile.simple.dto';
 
 @Injectable()
-export class MobileService {
+export class MobileService extends BaseNoticeService<
+    MobileListDto,
+    MobileDetailDto,
+    MobileSimpleDto
+> {
     constructor(
-        private readonly repo: MobileRepository,
-        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        repository: MobileRepository,
+        @Inject(CACHE_MANAGER) cacheManager: Cache,
     ) {
+        super(repository, cacheManager);
+    }
+
+    protected getCachePrefix(): string {
+        return 'mobile';
+    }
+
+    protected getNotFoundMessage(id: string): string {
+        return `존재하지 않는 공지사항 ID입니다. (id=${id})`;
+    }
+
+    protected async fetchPage(
+        page: number,
+        limit: number,
+    ): Promise<MobileListDto[]> {
+        return this.repository.findAllSimple(page, limit);
     }
 
     async getAllMobile(limit = 30, pinnedLimit = 3): Promise<MobileListDto[]> {
-        const cacheKey = `mobile_all_${limit}_${pinnedLimit}`;
-
-        // 캐시 확인
-        const cached = await this.cacheManager.get<MobileListDto[]>(cacheKey);
-        if (cached) {
-            return cached;
-        }
-
-        // 캐시 없으면 크롤링
-        const pinnedNotices = new Map<string, MobileListDto>();
-        const regularNotices = new Map<string, MobileListDto>();
-        const regularLimit = limit - pinnedLimit;
-        let currentPage = 1;
-
-        while (true) {
-            const noticesFromPage = await this.repo.findAllSimple(currentPage);
-
-            if (noticesFromPage.length === 0) {
-                break;
-            }
-
-            for (const notice of noticesFromPage) {
-                if (notice.is_pin) {
-                    if (pinnedNotices.size < pinnedLimit && !pinnedNotices.has(notice.id)) {
-                        pinnedNotices.set(notice.id, notice);
-                    }
-                } else {
-                    if (regularNotices.size < regularLimit && !regularNotices.has(notice.id)) {
-                        regularNotices.set(notice.id, notice);
-                    }
-                }
-            }
-
-            if (pinnedNotices.size >= pinnedLimit && regularNotices.size >= regularLimit) {
-                break;
-            }
-
-            currentPage++;
-        }
-
-        const pinnedArray = Array.from(pinnedNotices.values()).sort((a, b) => {
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        });
-
-        const regularArray = Array.from(regularNotices.values()).sort((a, b) => {
-            return (b.num ?? 0) - (a.num ?? 0);
-        });
-
-        const result = [...pinnedArray, ...regularArray];
-
-        // 캐시 저장 (5분)
-        await this.cacheManager.set(cacheKey, result, 300000);
-
-        return result;
+        return this.getAllWithPagination(limit, pinnedLimit);
     }
 
     async getPinnedMobile(): Promise<MobileSimpleDto[]> {
-        return this.repo.findPinnedSimple();
+        return this.getPinned();
     }
 
     async getMobileDetail(id: string): Promise<MobileDetailDto> {
-        const detail = await this.repo.findOneDetail(id);
-        if (!detail) {
-            throw new NotFoundException(
-                `존재하지 않는 공지사항 ID입니다. (id=${id})`,
-            );
-        }
-        return detail;
+        return this.getDetail(id);
     }
 }
