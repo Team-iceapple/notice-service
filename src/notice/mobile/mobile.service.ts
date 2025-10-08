@@ -15,8 +15,8 @@ export class MobileService {
     ) {
     }
 
-    async getAllMobile(limit = 30): Promise<MobileListDto[]> {
-        const cacheKey = `mobile_all_${limit}`;
+    async getAllMobile(limit = 30, pinnedLimit = 3): Promise<MobileListDto[]> {
+        const cacheKey = `mobile_all_${limit}_${pinnedLimit}`;
 
         // 캐시 확인
         const cached = await this.cacheManager.get<MobileListDto[]>(cacheKey);
@@ -27,6 +27,7 @@ export class MobileService {
         // 캐시 없으면 크롤링
         const pinnedNotices = new Map<string, MobileListDto>();
         const regularNotices = new Map<string, MobileListDto>();
+        const regularLimit = limit - pinnedLimit;
         let currentPage = 1;
 
         while (true) {
@@ -38,19 +39,17 @@ export class MobileService {
 
             for (const notice of noticesFromPage) {
                 if (notice.is_pin) {
-                    if (!pinnedNotices.has(notice.id)) {
+                    if (pinnedNotices.size < pinnedLimit && !pinnedNotices.has(notice.id)) {
                         pinnedNotices.set(notice.id, notice);
                     }
                 } else {
-                    const remainingSlots = limit - pinnedNotices.size;
-                    if (regularNotices.size < remainingSlots && !regularNotices.has(notice.id)) {
+                    if (regularNotices.size < regularLimit && !regularNotices.has(notice.id)) {
                         regularNotices.set(notice.id, notice);
                     }
                 }
             }
 
-            const remainingSlots = limit - pinnedNotices.size;
-            if (regularNotices.size >= remainingSlots) {
+            if (pinnedNotices.size >= pinnedLimit && regularNotices.size >= regularLimit) {
                 break;
             }
 
